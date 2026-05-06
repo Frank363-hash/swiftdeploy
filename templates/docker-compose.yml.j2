@@ -1,6 +1,8 @@
 networks:
   {{ network.name }}:
     driver: {{ network.driver_type }}
+  opa-internal:
+    driver: bridge
 
 volumes:
   {{ services.log_volume }}:
@@ -42,3 +44,25 @@ services:
       - {{ network.name }}
     depends_on:
       - app
+
+  opa:
+    image: openpolicyagent/opa:latest-rootless
+    container_name: swiftdeploy-opa
+    restart: {{ services.restart_policy }}
+    command:
+      - "run"
+      - "--server"
+      - "--addr=0.0.0.0:8181"
+      - "--log-level=error"
+      - "/policies"
+    volumes:
+      - ./policies:/policies:ro
+    networks:
+      - opa-internal
+    ports:
+      - "8181:8181"
+    healthcheck:
+      test: ["CMD", "wget", "-q", "-O", "-", "http://localhost:8181/health"]
+      interval: 10s
+      timeout: 5s
+      retries: 6
