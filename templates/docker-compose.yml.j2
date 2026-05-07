@@ -46,7 +46,7 @@ services:
       - app
 
   opa:
-    image: openpolicyagent/opa:latest-rootless
+    image: openpolicyagent/opa:latest
     container_name: swiftdeploy-opa
     restart: {{ services.restart_policy }}
     command:
@@ -62,7 +62,7 @@ services:
     ports:
       - "8181:8181"
     healthcheck:
-      test: ["CMD", "wget", "-q", "-O", "-", "http://localhost:8181/health"]
+      test: ["CMD-SHELL", "curl -sf http://localhost:8181/health || exit 1"]
       interval: 10s
       timeout: 5s
       retries: 6
